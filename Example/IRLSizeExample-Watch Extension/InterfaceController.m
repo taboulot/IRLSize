@@ -31,36 +31,44 @@
 
 - (void)configureHalfInchGroup
 {
-    NSMeasurement<NSUnitLength *> *halfInch =
-    [[NSMeasurement alloc] initWithDoubleValue:0.5
-                                          unit:[NSUnitLength inches]];
-    
-    [self.halfInchGroup irl_setPhysicalWidth:halfInch];
-    [self.halfInchGroup irl_setPhysicalHeight:halfInch];
+    if (@available(watchOS 3.0, *)) {
+        NSMeasurement<NSUnitLength *> *halfInch =
+        [[NSMeasurement alloc] initWithDoubleValue:0.5
+                                              unit:[NSUnitLength inches]];
+        
+        [self.halfInchGroup irl_setPhysicalWidth:halfInch];
+        [self.halfInchGroup irl_setPhysicalHeight:halfInch];
+    } else {
+        // Fallback on earlier versions
+    }
 }
 
 - (void)configureLabels
 {
-    NSMeasurementFormatter *formatter = [[NSMeasurementFormatter alloc] init];
-    
-    formatter.unitOptions = NSMeasurementFormatterUnitOptionsProvidedUnit;
-    
-    NSUnitLength *lengthUnitToDisplay;
-    
-    if ([[NSLocale currentLocale] usesMetricSystem]) {
-        lengthUnitToDisplay = [NSUnitLength centimeters];
+    if (@available(watchOS 3.0, *)) {
+        NSMeasurementFormatter *formatter = [[NSMeasurementFormatter alloc] init];
+        
+        formatter.unitOptions = NSMeasurementFormatterUnitOptionsProvidedUnit;
+        
+        NSUnitLength *lengthUnitToDisplay;
+        
+        if ([[NSLocale currentLocale] usesMetricSystem]) {
+            lengthUnitToDisplay = [NSUnitLength centimeters];
+        }
+        else {
+            lengthUnitToDisplay = [NSUnitLength inches];
+        }
+        
+        [self.widthLabel setText:[formatter stringFromMeasurement:
+                                  [[[WKInterfaceDevice currentDevice] irl_physicalScreenWidth]
+                                   measurementByConvertingToUnit:lengthUnitToDisplay]]];
+        
+        [self.heightLabel setText:[formatter stringFromMeasurement:
+                                   [[[WKInterfaceDevice currentDevice] irl_physicalScreenHeight]
+                                    measurementByConvertingToUnit:lengthUnitToDisplay]]];
+    } else {
+        // Fallback on earlier versions
     }
-    else {
-        lengthUnitToDisplay = [NSUnitLength inches];
-    }
-    
-    [self.widthLabel setText:[formatter stringFromMeasurement:
-                              [[[WKInterfaceDevice currentDevice] irl_physicalScreenWidth]
-                               measurementByConvertingToUnit:lengthUnitToDisplay]]];
-    
-    [self.heightLabel setText:[formatter stringFromMeasurement:
-                               [[[WKInterfaceDevice currentDevice] irl_physicalScreenHeight]
-                                measurementByConvertingToUnit:lengthUnitToDisplay]]];
 }
 
 @end

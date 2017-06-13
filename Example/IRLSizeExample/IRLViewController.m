@@ -16,10 +16,10 @@
 
 @property (assign) BOOL didTransformRuler;
 
-@property (weak, nonatomic) IBOutlet RulerView *rulerView;
+@property (nullable, weak, nonatomic) UIView *rulerView;
 
-@property (weak, nonatomic) IBOutlet UILabel *widthLabel;
-@property (weak, nonatomic) IBOutlet UILabel *heightLabel;
+@property (nullable, weak, nonatomic) IBOutlet UILabel *widthLabel;
+@property (nullable, weak, nonatomic) IBOutlet UILabel *heightLabel;
 
 @end
 
@@ -29,6 +29,60 @@
 - (BOOL)prefersStatusBarHidden
 {
     return YES;
+}
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    
+    if (@available(iOS 10.0, *)) {
+        RulerView *rulerView = [[RulerView alloc] init];
+        
+        rulerView.backgroundColor = UIColor.whiteColor;
+        rulerView.translatesAutoresizingMaskIntoConstraints = NO;
+        
+        UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleRegular];
+        
+        UIVisualEffectView *blurEffectView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
+        
+        blurEffectView.translatesAutoresizingMaskIntoConstraints = NO;
+        
+        UIVisualEffectView *vibrancyEffectView =
+        [[UIVisualEffectView alloc] initWithEffect:
+         [UIVibrancyEffect effectForBlurEffect:blurEffect]];
+        
+        vibrancyEffectView.translatesAutoresizingMaskIntoConstraints = NO;
+        
+        [vibrancyEffectView.contentView addSubview:rulerView];
+        [blurEffectView.contentView addSubview:vibrancyEffectView];
+        [self.view addSubview:blurEffectView];
+        
+        [rulerView.leadingAnchor constraintEqualToAnchor:vibrancyEffectView.leadingAnchor].active = YES;
+        [rulerView.trailingAnchor constraintEqualToAnchor:vibrancyEffectView.trailingAnchor].active = YES;
+        [rulerView.topAnchor constraintEqualToAnchor:vibrancyEffectView.topAnchor].active = YES;
+        [rulerView.bottomAnchor constraintEqualToAnchor:vibrancyEffectView.bottomAnchor].active = YES;
+        
+        [vibrancyEffectView.leadingAnchor constraintEqualToAnchor:blurEffectView.leadingAnchor].active = YES;
+        [vibrancyEffectView.trailingAnchor constraintEqualToAnchor:blurEffectView.trailingAnchor].active = YES;
+        [vibrancyEffectView.topAnchor constraintEqualToAnchor:blurEffectView.topAnchor].active = YES;
+        [vibrancyEffectView.bottomAnchor constraintEqualToAnchor:blurEffectView.bottomAnchor].active = YES;
+        
+        [blurEffectView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor].active = YES;
+        [blurEffectView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor].active = YES;
+        [blurEffectView.topAnchor constraintEqualToAnchor:self.topLayoutGuide.bottomAnchor].active = YES;
+        [blurEffectView.heightAnchor constraintEqualToConstant:128.0f].active = YES;
+        
+        if (@available(iOS 11.0, *)) {
+            [self.heightLabel.topAnchor
+             constraintGreaterThanOrEqualToSystemSpacingBelowAnchor:blurEffectView.bottomAnchor
+             multiplier:0.0f].active = YES;
+        } else {
+            [self.heightLabel.topAnchor constraintGreaterThanOrEqualToAnchor:blurEffectView.bottomAnchor
+                                                                    constant:8.0f].active = YES;
+        }
+        
+        self.rulerView = rulerView;
+    }
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -49,33 +103,40 @@
 
 - (void)viewDidLayoutSubviews
 {
-    [super viewDidLayoutSubviews];
-    
     [self configureLabels];
 }
 
 - (void)configureLabels
 {
-    NSMeasurementFormatter *formatter = [[NSMeasurementFormatter alloc] init];
-    
-    formatter.unitOptions = NSMeasurementFormatterUnitOptionsProvidedUnit;
-    
-    NSUnitLength *lengthUnitToDisplay;
-    
-    if ([[NSLocale currentLocale] usesMetricSystem]) {
-        lengthUnitToDisplay = [NSUnitLength centimeters];
+    if (@available(iOS 10.0, *)) {
+        NSMeasurementFormatter *formatter = [[NSMeasurementFormatter alloc] init];
+        formatter.unitOptions = NSMeasurementFormatterUnitOptionsProvidedUnit;
+        formatter.numberFormatter.maximumFractionDigits = 1;
+        
+        NSUnitLength *lengthUnitToDisplay;
+        
+        if ([[NSLocale currentLocale] usesMetricSystem]) {
+            lengthUnitToDisplay = [NSUnitLength centimeters];
+        }
+        else {
+            lengthUnitToDisplay = [NSUnitLength inches];
+        }
+        
+        self.widthLabel.text = [formatter stringFromMeasurement:
+                                [[self.view irl_physicalWidth]
+                                 measurementByConvertingToUnit:lengthUnitToDisplay]];
+        
+        self.heightLabel.text = [formatter stringFromMeasurement:
+                                 [[self.view irl_physicalHeight]
+                                  measurementByConvertingToUnit:lengthUnitToDisplay]];
+    } else {
+        self.widthLabel.text = [NSString stringWithFormat:@"%.2f m",
+                                self.view.irl_rawPhysicalWidth];
+        
+        self.heightLabel.text = [NSString stringWithFormat:@"%.2f m",
+                                 self.view.irl_rawPhysicalHeight];
     }
-    else {
-        lengthUnitToDisplay = [NSUnitLength inches];
-    }
     
-    self.widthLabel.text = [formatter stringFromMeasurement:
-                            [[self.view irl_physicalWidth]
-                             measurementByConvertingToUnit:lengthUnitToDisplay]];
-
-    self.heightLabel.text = [formatter stringFromMeasurement:
-                             [[self.view irl_physicalHeight]
-                             measurementByConvertingToUnit:lengthUnitToDisplay]];
 }
 
 @end
