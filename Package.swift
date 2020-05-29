@@ -7,7 +7,8 @@ let package = Package(
         .library(name: "IRLSize", targets: ["IRLSize"]),
     ],
     dependencies: [
-        .package(path: "../Orchard")
+        .package(url: "https://github.com/SlaunchaMan/Orchard",
+                 .branch("swiftpm-objc"))
     ],
     targets: [
         .target(
