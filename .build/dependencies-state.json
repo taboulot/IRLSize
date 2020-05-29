@@ -1,0 +1,1 @@
+{"object": {"dependencies": [{"basedOn": null, "packageRef": {"identity": "orchard", "kind": "local", "name": "Orchard", "path": "/Users/jeff/Projects/Open-Source/Orchard"}, "state": {"name": "local"}, "subpath": "orchard"}]}, "version": 3}

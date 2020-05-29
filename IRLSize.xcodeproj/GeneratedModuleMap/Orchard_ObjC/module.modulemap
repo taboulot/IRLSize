@@ -1,0 +1,4 @@
+module Orchard_ObjC {
+    umbrella "/Users/jeff/Projects/Open-Source/Orchard/Sources/Orchard-ObjC/include"
+    export *
+}
